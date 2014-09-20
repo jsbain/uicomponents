@@ -14,7 +14,8 @@ class FlowContainer(ui.View):
                  frame=(0,0,200,200),
                  flex='WH',
                  padding=5,
-                 subviews=None
+                 subviews=None,
+                 name=None
         ):
             """initialize view.  
             flex settings control layout.  """
@@ -25,7 +26,7 @@ class FlowContainer(ui.View):
             self.frame=frame
             self.flex=flex
             self.padding=padding
-
+            self.name=name
             #monkey patch add_subview to also call layout. 
             # also accept list of subviews to add for easy initalizstion
             old_add_subview=self.add_subview
@@ -151,7 +152,7 @@ if __name__=="__main__":
     f3=FlowContainer()
     v.add_subview(f3)
     f3.flex=''
-    f3.frame=(50,450,400,100)  #fixed size
+    f3.frame=(50,450,400,300)  #fixed size
     t=ui.Label(frame=(15,425,500,25))
     t.text='fixed size'
     v.add_subview(t)
