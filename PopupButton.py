@@ -16,7 +16,8 @@ class PopupButton (ui.View):
                  border_color=(0,0,0),
                  border_width=1,
                  corner_radius=10,
-                 action=(lambda sender:None)):
+                 action=(lambda sender:None),
+                 childButtons=[]):
         #ui props
         self.frame=frame
         self.title=title
@@ -36,6 +37,8 @@ class PopupButton (ui.View):
         flow=FlowContainer(name='longtapbox',flex='whr')
         flow.hidden=True
         self.flow=flow
+        for b in childButtons:
+            self.add_subview(b)
 
 
     def add_subview(self,subview):
