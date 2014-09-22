@@ -17,7 +17,8 @@ class PopupButton (ui.View):
                  border_width=1,
                  corner_radius=10,
                  action=(lambda sender:None),
-                 childButtons=[]):
+                 childButtons=[],
+                 font=('HelveticaNeue',26)):
         #ui props
         self.frame=frame
         self.title=title
@@ -30,6 +31,7 @@ class PopupButton (ui.View):
         self.corner_radius=corner_radius
         self.action = action
         self.multitouch_enabled=False
+        self.font=font
         #custom properties
         self.doing_longtouch=False #is long touch activated
         self.touched=False         #currently touching button
@@ -37,9 +39,9 @@ class PopupButton (ui.View):
         flow=FlowContainer(name='longtapbox',flex='whr')
         flow.hidden=True
         self.flow=flow
+        self.content_mode=ui.CONTENT_LEFT
         for b in childButtons:
             self.add_subview(b)
-
 
     def add_subview(self,subview):
         #override add_subview to add to longtapbox
@@ -55,21 +57,27 @@ class PopupButton (ui.View):
     def will_close(self):
         # This will be called when a presented view is about to be dismissed.
         # You might want to save data here.
-        t.stop()
+        if self.t:
+            t.stop()
         ui.cancel_delays()
         pass
-
-
 
     def draw(self):
         # redraw button
         def darken(color):
             return tuple([0.5*x for x in color])
+
+        
+        #set up button size to fit.
+        padding=10
+        textsize=ui.measure_string(string=self.title,max_width=0,font=self.font,alignment=ui.ALIGN_CENTER)
+
         #draw border
         ui.set_color(self.border_color)
         path = ui.Path.rounded_rect(0, 0, self.width, self.height,self.corner_radius)
         path.line_width=self.border_width
         path.stroke()
+        
         #fill button, depending on touch state
         if self.touched:
             if self.doing_longtouch:
@@ -79,21 +87,30 @@ class PopupButton (ui.View):
         else :
             ui.set_color(self.bg_color)
         path.fill()
+        
         # fill corner darker, if has children
         if self.flow.subviews:
             corner = ui.Path()
-            corner.move_to(self.width-self.corner_radius,0)
+            corner.move_to(self.width-1.5*self.corner_radius,0)
             corner.line_to(self.width,0)
-            corner.line_to(self.width,self.corner_radius)
-            corner.line_to(self.width-self.corner_radius,0)
+            corner.line_to(self.width,1.5*self.corner_radius)
+            corner.line_to(self.width-1.5*self.corner_radius,0)
             ui.set_color(darken(darken(self.bg_color)))
             corner.stroke()
             corner.fill()
 
-        # draw title. todo, use self.font
-        ui.draw_string(self.title, rect=self.bounds, font=('Optima-ExtraBlack', 32), color=self.tint_color, alignment=ui.ALIGN_CENTER, line_break_mode=ui.LB_WORD_WRAP)
+        # draw title, center vertically, horiz
+        rect=list(self.bounds)
+        rect[1]=(rect[3]-textsize[1])/2 #vert center
+        rect[2]=max(rect[2],textsize[0]+10)
+        ui.draw_string(self.title, rect=tuple(rect), font=self.font, color=self.tint_color, alignment=ui.ALIGN_CENTER, line_break_mode=ui.LB_WORD_WRAP)
         
+        if textsize[0]>self.bounds[2]:
+            self.width=textsize[0]+10
 
+    def layout(self):
+        self.set_needs_display()
+        
     def do_long_touch(self):
         if self.touched:
             self.doing_longtouch=True
@@ -226,7 +243,7 @@ if __name__=='__main__':
     for i in range(0,10):
         key=random.choice(string.ascii_letters)
         addKey(key,random.sample(string.ascii_letters, random.randrange(0,5)),keyrow)
-
+    addKey('ABCDefghijk',None ,keyrow)
     v.add_subview(keyrow)
 
 
