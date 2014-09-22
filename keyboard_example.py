@@ -2,36 +2,83 @@ import ui
 from uicontainer import FlowContainer
 from PopupButton import PopupButton
 
-class KeyboardExtension(ui.View):
+class key(object):
+    #model of a key.  view is popupbutton
+    # key has a title, value, action, and maybe subkeys
+    def __init__(self, val='',subkeys=[],title=None, action=None):
+        self.val=val
+        if title is None:
+            self.title=self.val
+        else:
+            self.title=title
+        self.subkeys=[key(s) if isinstance(s,str) else s for s in subkeys]
+        if action:
+            self.action=action
+        else:
+            self.action=self.default
+
+    def default(self,sender):
+        #default action: insert value into textview
+        if sender.superview:
+            txt=kb['text']  #ugly global...need a better way to set target
+            txt.replace_range(txt.selected_range,self.val)
+            
+    def makeButton(self):
+        #return popup button view of this key
+        childButtons=[makeButton(subkey)  for subkey in self.subkeys]
+        return PopupButton(title=self.title,childButtons=childButtons,action=self.action)
+    
+def notimplemented(sender):
+    import console
+    console.hud_alert('key action not implemented')
+    
+class KeyboardExampleView(ui.View):
     def __init__(self):
         pass
-root=ui.View()
-root.flex='WH'
-root.present('fullscreen')
-class key(object):
-    def __init__(self, k='',subkeys=[]):
-        self.key=k
-        self.subkeys=[key(s) for s in subkeys]
-        
+    def keyboard_frame_did_change(self,frame):
+        if not self.on_screen:
+            return
 
-keymap=[key('\t'),key('_'),key('#',['@']),key('<',['<=']),key('>',['>=']),
+        if self.superview:
+            if frame[1]:
+                kbframe=ui.convert_rect(frame,None,self)
+                self.height=kbframe[1]
+
+                self['keyboard'].hidden=False
+
+            else:
+                self.height=self.superview.height
+                self['keyboard'].hidden=True
+#define keys          
+redokey=key(title='redo',action=notimplemented)
+undokey=key(title='undo',subkeys=[redokey], action=notimplemented)
+
+keymap=[key('\t',title='TAB'),key('_'),key('#',['@']),key('<',['<=']),key('>',['>=']),
         key('{'),key('}'),key('['),key(']'),key("'",['"']),key('('),key(')'),
-        key(':',[';'])]+[key(str(n)) for n in range(1,9)]+[key('0'),key('+',['%']),key('-'),key('/',['\n','\t','\\','/']),key('*'),key('=',['!='])]
-                                
+        key(':',[';']), undokey]+[key(str(n)) for n in range(1,9)]+[key('0'),key('+',['%']),key('-'),key('/',['\\n','\\t','\\','/']),key('*'),key('=',['!='])]
+        
+#set up ui      
+root=ui.View()
+root.flex='WHTBLR'
 
+root.present('panel')
 
-def makeButton(k):
-    def buttaction(sender):
-        print k.key
-    childButtons=[makeButton(subkey)  for subkey in k.subkeys]
-    return PopupButton(title=k.key,childButtons=childButtons,action=buttaction)
-
-keyboard=FlowContainer(frame=(0,root.height-100,root.width,250),flex='THW')
-root.add_subview(keyboard)
+# set up example
+kb=KeyboardExample()
+root.add_subview(kb)
+kb.bg_color=(.8,.8,.8)
+kb.flex='WHT'
+kb.frame=(0,0,root.width,root.height)
+kb.border_width=5
+kb.border_color=(0,1,0)
+kb.add_subview(ui.TextView(frame=(10,10,700,400),name='text'))
+#keyboard component
+keyboard=FlowContainer(frame=(0,kb.height-150,kb.width,250),flex='TWH')
+keyboard.name='keyboard'
+kb.add_subview(keyboard)
 keyboard.hidden=True
-
-for key in keymap:
-    keyboard.add_subview(makeButton(key))
-keyboard.hidden=False
-#keyboard.layout()
+for k in keymap:
+    keyboard.add_subview(k.makeButton())
+keyboard.flex='WT'
+keyboard.y=kb.height-keyboard.height
 
