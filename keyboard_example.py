@@ -2,6 +2,10 @@ import ui
 from uicontainer import FlowContainer
 from PopupButton import PopupButton
 
+presentmode='sheet'
+#presentmode='panel'
+
+
 class key(object):
     #model of a key.  view is popupbutton
     # key has a title, value, action, and maybe subkeys
@@ -25,14 +29,16 @@ class key(object):
             
     def makeButton(self):
         #return popup button view of this key
-        childButtons=[makeButton(subkey)  for subkey in self.subkeys]
+        childButtons=[subkey.makeButton()  for subkey in self.subkeys]
         return PopupButton(title=self.title,childButtons=childButtons,action=self.action)
     
 def notimplemented(sender):
     import console
     console.hud_alert('key action not implemented')
+def hideaction(sender):
+    sender.superview.hidden=True
     
-class KeyboardExampleView(ui.View):
+class KeyboardExample(ui.View):
     def __init__(self):
         pass
     def keyboard_frame_did_change(self,frame):
@@ -52,16 +58,16 @@ class KeyboardExampleView(ui.View):
 #define keys          
 redokey=key(title='redo',action=notimplemented)
 undokey=key(title='undo',subkeys=[redokey], action=notimplemented)
-
+hidekey=key(title='hide',action=hideaction)
 keymap=[key('\t',title='TAB'),key('_'),key('#',['@']),key('<',['<=']),key('>',['>=']),
         key('{'),key('}'),key('['),key(']'),key("'",['"']),key('('),key(')'),
-        key(':',[';']), undokey]+[key(str(n)) for n in range(1,9)]+[key('0'),key('+',['%']),key('-'),key('/',['\\n','\\t','\\','/']),key('*'),key('=',['!='])]
+        key(':',[';']), undokey]+[key(str(n)) for n in range(1,9)]+[key('0'),key('+',['%']),key('-'),key('/',['\\n','\\t','\\','/']),key('*'),key('=',['!=']), hidekey]
         
 #set up ui      
 root=ui.View()
 root.flex='WHTBLR'
 
-root.present('panel')
+root.present(presentmode)
 
 # set up example
 kb=KeyboardExample()
@@ -72,6 +78,7 @@ kb.frame=(0,0,root.width,root.height)
 kb.border_width=5
 kb.border_color=(0,1,0)
 kb.add_subview(ui.TextView(frame=(10,10,700,400),name='text'))
+kb['text'].text='type something\n'
 #keyboard component
 keyboard=FlowContainer(frame=(0,kb.height-150,kb.width,250),flex='TWH')
 keyboard.name='keyboard'
