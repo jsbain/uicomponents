@@ -35,14 +35,14 @@ class RootView(ui.View):
                     + (yaxis[1]==-1)*w
                     + yaxis[1]*pt_c[1])
         else:  #just get corrected origin, and subtract out
-            origin_offset=self.convert_point((0,0),to_view,from_view)
+            origin_offset=RootView.convert_point((0,0),to_view,from_view)
             pt[0]=  point[0]  - origin_offset[0]
             pt[1]=  point[1]  - origin_offset[1]
         return tuple(pt)
         
     @staticmethod
     def convert_rect(rect=(0,0,0,0),from_view=None,to_view=None):
-        pt=self.convert_point((rect[0],rect[1]), from_view,to_view)
+        pt=RootView.convert_point((rect[0],rect[1]), from_view,to_view)
         return (pt[0], pt[1], rect[2], rect[3])
         
     def get_keyboard_frame(self):
