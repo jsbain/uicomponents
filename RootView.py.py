@@ -5,8 +5,9 @@ class RootView(ui.View):
         '''Children must call RootView.__init__(self), in order to set up hidden webview!'''
         self.__w=ui.WebView(frame=(1,1,1,1))
         self.add_subview(self.__w)
-
-    def convert_point(self,point=(0,0),from_view=None,to_view=None):
+        
+    @staticmethod
+    def convert_point(point=(0,0),from_view=None,to_view=None):
         '''fixed convert point for fullscreen application.
         works for any present type
         existing function in fullscreen reports relative to portrait
@@ -15,11 +16,9 @@ class RootView(ui.View):
         (w,h)=ui.get_screen_size()
 
         #detect what convert_point things rotation is.
-
         origin=ui.convert_point((0,0),from_view,to_view )
         xaxis=ui.convert_point((1,0),from_view,to_view )
         xaxis=[xaxis[j]-origin[j] for j in (0,1)]
-
         yaxis=ui.convert_point((0,1),from_view,to_view )
         yaxis=[yaxis[j]-origin[j] for j in (0,1)]
         pt_c=ui.convert_point(tuple(point),from_view,to_view)
@@ -39,9 +38,10 @@ class RootView(ui.View):
             origin_offset=self.convert_point((0,0),to_view,from_view)
             pt[0]=  point[0]  - origin_offset[0]
             pt[1]=  point[1]  - origin_offset[1]
-
         return tuple(pt)
-    def convert_rect(self,rect=(0,0,0,0),from_view=None,to_view=None):
+        
+    @staticmethod
+    def convert_rect(rect=(0,0,0,0),from_view=None,to_view=None):
         pt=self.convert_point((rect[0],rect[1]), from_view,to_view)
         return (pt[0], pt[1], rect[2], rect[3])
         
@@ -74,8 +74,8 @@ class RootView(ui.View):
             fixedframe= [frame[1], w-frame[0]-frame[2],h,frame[2]]
         else:
             raise Error('UnexpectedOrientation')
-
         return fixedframe
+        
     def get_orientation(self):
         return self.__w.eval_js('window.orientation')
 
