@@ -45,11 +45,13 @@ class RootView(ui.View):
         pt=RootView.convert_point((rect[0],rect[1]), from_view,to_view)
         return (pt[0], pt[1], rect[2], rect[3])
         
-    def get_keyboard_frame(self):
+    def get_keyboard_frame(self,frame=None):
         '''get corrected keyboard frame, in the screen coordinates.
         built in function breaks when in fullscreen, as it reports kbframe relative to a landscape screen'''
         #TODO:  remove dependence on webview, use xaxis/yaxis to determine rotation instead
 
+        if frame is None:
+            frame=ui.get_keyboard_frame()
         origin=ui.convert_point((0,0),None,self )
         xaxis=ui.convert_point((1,0),None,self )
         xaxis=[xaxis[j]-origin[j] for j in (0,1)]
@@ -57,7 +59,7 @@ class RootView(ui.View):
         yaxis=[yaxis[j]-origin[j] for j in (0,1)]
 
         o=self.__w.eval_js('window.orientation')
-        frame=ui.get_keyboard_frame()
+
         (w,h)=ui.get_screen_size()
 
         if xaxis[0]==1 and yaxis[1]==1 and frame[0]==0:

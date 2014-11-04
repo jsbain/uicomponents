@@ -1,5 +1,6 @@
 import ui, threading, time
 from uicontainer import FlowContainer
+from threading import Timer
 #from initializer import initializer
 
 
@@ -132,6 +133,10 @@ class PopupButton (ui.View):
                 flow.x=flow.x
             ui.animate(pop,0.05)
             self.set_needs_display()
+            # add delayed cleanup of the popup, for panel mode where this deosnt behave
+
+            self.longtouchcleanuptimer=Timer(3.0,self.longtouch_cleanup)
+            self.longtouchcleanuptimer.start()
 
 
     def touch_began(self, touch):
@@ -169,7 +174,9 @@ class PopupButton (ui.View):
         # Called when a touch moves.
         #if not self.doing_longtouch:
 
-
+        self.longtouchcleanuptimer.cancel()
+        self.longtouchcleanuptimer=Timer(3.0,self.longtouch_cleanup)
+        self.longtouchcleanuptimer.start()
         t= time.time()
         if t<self.lastTouchTime +0.1:
             # avoid running moved at too high a rate. probably not necessary
@@ -187,7 +194,6 @@ class PopupButton (ui.View):
                 if not self.touched:
                     self.touched=True
                     self.set_needs_display()
-
         elif not PopupButton.hit(self,touch.location):
             if self.touched :
                 self.touched=False
@@ -199,6 +205,8 @@ class PopupButton (ui.View):
             self.longtouch_cleanup()
             self.touch_began(touch)
         self.lastTouchTime=t
+
+
 
 
         #pass
@@ -247,4 +255,5 @@ if __name__=='__main__':
     v.add_subview(keyrow)
 
 
-    v.present('sheet')
+   # v.present('sheet')
+    v.present('panel',hide_title_bar=True)
