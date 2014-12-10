@@ -15,3 +15,6 @@ Various ui components for pythonista
 - uiCheckBox.py	  checkbox type control
 - uicontainer.py contains FlowContainer, which automatically wraps subviews
 - AdvancedTextView   textView with programatic undo and redo capability
+- ZoomView  touch zoomable and movable window
+- TouchDispatcher  implements a way to intercept touch events before sending to underlying views
+- TabbedView  implements a tab container
