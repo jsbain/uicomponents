@@ -38,10 +38,7 @@ class CheckBox(ui.View):
         
     def _get_checkbox_char(self):
         ''''''
-        if self.value:
-            return self.char
-        else:
-            return ' ' 
+        return self.char if self.value else ' ' 
             
     def _button_action(self, sender):
         '''internal action for encapsulated button.  toggles value, display mark, 
@@ -59,10 +56,7 @@ class CheckBox(ui.View):
     @enabled.setter
     def enabled(self, enabled):
         self._cb.enabled = enabled
-        if not enabled:
-            self._cb.bg_color= (0,0,0,0.2) #darken button
-        else:
-            self._cb.bg_color = (0,0,0 ,0)
+        self._cb.bg_color = (0,0,0 ,0) if enabled else (0,0,0,0.2) #darken button
 
 #simple example
 if __name__=='__main__':
@@ -80,9 +74,3 @@ if __name__=='__main__':
     root.add_subview(L)
     checkbox_action(c)  #populate textfield
     c.corner_radius=15
-
-
-    
-
-
-
