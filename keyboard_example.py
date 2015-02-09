@@ -11,15 +11,9 @@ class key(object):
     # key has a title, value, action, and maybe subkeys
     def __init__(self, val='',subkeys=[],title=None, action=None):
         self.val=val
-        if title is None:
-            self.title=self.val
-        else:
-            self.title=title
+        self.title=title if title else val
         self.subkeys=[key(s) if isinstance(s,str) else s for s in subkeys]
-        if action:
-            self.action=action
-        else:
-            self.action=self.default
+        self.action=action if action else self.default
 
     def default(self,sender):
         #default action: insert value into textview
@@ -88,4 +82,3 @@ for k in keymap:
     keyboard.add_subview(k.makeButton())
 keyboard.flex='WT'
 keyboard.y=kb.height-keyboard.height
-
