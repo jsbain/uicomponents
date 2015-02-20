@@ -19,7 +19,7 @@ class ZoomView(ui.View):
         self.border=20
         
     def fix_touch(self,touch):
-        '''convert to root coords. i think this doesnt quite work, '''
+        '''convert    to root coords. i think this doesnt quite work, '''
         t=Touch(touch)
         t.location=ui.convert_point(t.location,self,self.superview)
         t.prev_location=ui.convert_point(t.prev_location,self,self.superview)

@@ -173,10 +173,12 @@ class PopupButton (ui.View):
     def touch_moved(self, touch):
         # Called when a touch moves.
         #if not self.doing_longtouch:
-
-        self.longtouchcleanuptimer.cancel()
-        self.longtouchcleanuptimer=Timer(3.0,self.longtouch_cleanup)
-        self.longtouchcleanuptimer.start()
+        try:
+            self.longtouchcleanuptimer.cancel()
+            self.longtouchcleanuptimer=Timer(3.0,self.longtouch_cleanup)
+            self.longtouchcleanuptimer.start()
+        except AttributeError:
+            pass
         t= time.time()
         if t<self.lastTouchTime +0.1:
             # avoid running moved at too high a rate. probably not necessary
@@ -237,6 +239,7 @@ class PopupButton (ui.View):
 if __name__=='__main__':
 
     v=ui.View()
+    s=ui.ScrollView()
     keyrow=FlowContainer(frame=(0,200,400,40))
     def addKey(key,altkeys,keyrow):
         def printkey(sender):
@@ -252,8 +255,12 @@ if __name__=='__main__':
         key=random.choice(string.ascii_letters)
         addKey(key,random.sample(string.ascii_letters, random.randrange(0,5)),keyrow)
     addKey('ABCDefghijk',None ,keyrow)
-    v.add_subview(keyrow)
-
+    v.add_subview(s)
+    s.add_subview(keyrow)
+    s.flex='Wh'
+    
 
    # v.present('sheet')
     v.present('panel',hide_title_bar=True)
+    x,y,w,h=v.frame
+    s.content_size=(w+1,h+1)
