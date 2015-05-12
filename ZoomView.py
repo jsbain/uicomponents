@@ -21,8 +21,9 @@ class ZoomView(ui.View):
     def fix_touch(self,touch):
         '''convert    to root coords. i think this doesnt quite work, '''
         t=Touch(touch)
-        t.location=ui.convert_point(t.location,self,self.superview)
-        t.prev_location=ui.convert_point(t.prev_location,self,self.superview)
+        t.location=ui.convert_point(tuple(t.location),self,self.superview)
+        t.prev_location=ui.convert_point(tuple(t.prev_location),self,self.superview)
+
         return t
         
     def touch_began(self,touch):
@@ -67,7 +68,10 @@ class ZoomView(ui.View):
         
     def touch_ended(self,touch):
         '''clean up unused touch'''
-        del(self.touches[touch.touch_id])
+        try:
+           del(self.touches[touch.touch_id])
+        except KeyError:
+           pass
         if len(self.touches.keys())==1: 
             self.border_color=self.orig_border
             self.border_width=self.border_width-3
@@ -101,7 +105,7 @@ if __name__=='__main__':
         v.add_subview(closebutton)
         root.add_subview(v)
         
-    root=ui.View(bg_color=(0.00, 0.00, 0.50))
+    root=ui.View(bg_color=(0.00, 0.00, 0.50),frame=(200,200,800,800))
     new_button=ui.ButtonItem(title = '+ New Window')
     new_button.action=partial(create_new_window,root)
     root.right_button_items = [new_button]
@@ -111,4 +115,3 @@ if __name__=='__main__':
    # root.add_subview(new_button)
     root.present('sheet')
   #  v=ZoomView()
-

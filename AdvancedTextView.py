@@ -127,5 +127,7 @@ now, if range is adjacent to replacement range, i.e range[0]==replacementrange[1
 
 if __name__=='__main__':
     v=AdvancedTextView()
+    v.frame=(0,0,550,550)
     v.present('sheet')
+
     v.text='test'
