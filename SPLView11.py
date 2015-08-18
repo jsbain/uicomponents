@@ -140,9 +140,9 @@ class SPLView(ui.View):
       idx[1]=idx[0]+decimation_factor*self.N_onscreen 
       t=np.linspace(*(plt.xlim()+(self.N_onscreen,)))
 
-      data_downsampled_pk=data[idx[0]:idx[1],0].reshape(self.N_onscreen,-1).max(1)
+      data_downsampled_pk=data[idx[0]:idx[1],1].reshape(self.N_onscreen,-1).max(1)
       
-      data_downsampled_logmean=10.0*np.log10((10**(data[idx[0]:idx[1],1].reshape(self.N_onscreen,-1)/10.0)).mean(1))    
+      data_downsampled_logmean=10.0*np.log10((10**(data[idx[0]:idx[1],0].reshape(self.N_onscreen,-1)/10.0)).mean(1))    
      
       ax.lines[0].set_data(t,data_downsampled_pk)
       ax.lines[1].set_data(t,data_downsampled_logmean)
