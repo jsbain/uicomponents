@@ -1,5 +1,5 @@
 # coding: utf-8
-import ui
+import ui,console
 from functools import partial,wraps
 
 def animated(duration):
@@ -12,7 +12,7 @@ todo: add completion which gets called on the self object after animation is don
 		return animation
 	return decorator
 
-GESTURELENGTH=10	#distance of touch drag before any menus are shown
+GESTURELENGTH=40	#distance of touch drag before any menus are shown
 
 class SplitView(ui.View):
 	'''A simple split view implemented without objc.
@@ -28,6 +28,10 @@ class SplitView(ui.View):
 	'''
 	def __init__(self,detailwidth=320,style='slide',delegate=None,**kwargs):
 		ui.View.__init__(self,**kwargs)
+		self._sv=ui.ScrollView()
+		self._sv.flex='wh'
+		self._sv.frame=self.bounds
+		self._sv.content_size=(self.bounds[2]+1,self.bounds[3])
 		self._mainviewcontainer=ui.View()
 		self._mainviewcontainer.frame=self.bounds
 		self._detailviewcontainer=ui.View()
@@ -40,31 +44,20 @@ class SplitView(ui.View):
 		self._mainview=None
 		self._detailview=None
 		self.delegate=delegate
-		self.add_subview(self._mainviewcontainer)
-		self.add_subview(self._detailviewcontainer)
+		self._sv.delegate=self
+		self._sv.add_subview(self._mainviewcontainer)
+		self._sv.add_subview(self._detailviewcontainer)
+		self.add_subview(self._sv)
 		self.style='slide'# 'slide','resize'
 		self.state=0 #1 when detail shown
-	def touch_began(self,touch):
-		self._x0=touch.location.x
-	def touch_moved(self,touch):
-		if abs(touch.location.x-self._x0)>GESTURELENGTH:
-			self._detailviewcontainer.x=max(min(self._detailviewcontainer.x+touch.location.x-touch.prev_location.x,0),-self.detailwidth)
-			if self.style=='slide':
-				self._mainviewcontainer.x=max(min(self._mainviewcontainer.x+touch.location.x-touch.prev_location.x,self.detailwidth),0)
-	def touch_ended(self,touch):
-		''' if we have moved a lot negative, hide, otherwise show.'''
-		if self.state==0:
-			if self._detailviewcontainer.x>-self.detailwidth+4*GESTURELENGTH:
+
+	def scrollview_did_scroll(self, scrollview):
+		if not scrollview.dragging:
+			if self.state==0 and scrollview.content_offset[0]<-GESTURELENGTH:
 				self.show_detail()
-			else: 
+			if self.state==1 and scrollview.content_offset[0]>GESTURELENGTH:
 				self.hide_detail()
-		else:
-			if self._detailviewcontainer.x<-4*GESTURELENGTH:
-				self.hide_detail()
-			else:
-				self.show_detail()
-		self._x0=0
-	@animated(0.5)
+	@animated(0.3)
 	def show_detail(self):
 		'''shows the detail view, and calls splitview_did_show(self) on the delegate'''
 		self._detailviewcontainer.x=0
@@ -74,7 +67,7 @@ class SplitView(ui.View):
 			self.delegate.splitview_did_show(self)
 		self.state=1
 	
-	@animated(0.1)
+	@animated(0.2)
 	def hide_detail(self):
 		'''hides the detail view, and calls splitview_did_hide(self) on the delegate'''
 		self._detailviewcontainer.x = -self._detailviewcontainer.width
@@ -147,7 +140,7 @@ if __name__=='__main__':
 		def splitview_did_show(self,splitview):
 			self.target.bg_color=(.9,.8,.8,1)
 	splitview.delegate=ButtonToggler(mainview['menu'])
-	splitview.present('sheet')
+	splitview.present('panel')
 	
 
 	
