@@ -50,14 +50,22 @@ class SplitView(ui.View):
 		self.add_subview(self._sv)
 		self.style='slide'# 'slide','resize'
 		self.state=0 #1 when detail shown
-
+	def layout(self):
+		self._sv.content_size=(self.bounds[2]+1,self.bounds[3])
 	def scrollview_did_scroll(self, scrollview):
-		if not scrollview.dragging:
+		if scrollview.dragging: #prevent bounce
+			if self.state==0 and scrollview.content_offset[0]>0:
+				scrollview.content_offset=(0,0)
+			if self.state==1 and scrollview.content_offset[0]<0:
+				scrollview.content_offset=(0,0)
+		else: 
 			if self.state==0 and scrollview.content_offset[0]<-GESTURELENGTH:
 				self.show_detail()
 			if self.state==1 and scrollview.content_offset[0]>GESTURELENGTH:
 				self.hide_detail()
-	@animated(0.3)
+
+
+	@animated(0.4)
 	def show_detail(self):
 		'''shows the detail view, and calls splitview_did_show(self) on the delegate'''
 		self._detailviewcontainer.x=0
@@ -67,7 +75,7 @@ class SplitView(ui.View):
 			self.delegate.splitview_did_show(self)
 		self.state=1
 	
-	@animated(0.2)
+	@animated(0.3)
 	def hide_detail(self):
 		'''hides the detail view, and calls splitview_did_hide(self) on the delegate'''
 		self._detailviewcontainer.x = -self._detailviewcontainer.width
@@ -88,9 +96,11 @@ class SplitView(ui.View):
 	def mainview(self,value):
 		if self._mainview:
 			self._mainviewcontainer.remove_subview(self._mainview)
+			self._mainview.splitview=None
 		self._mainview=value
 		self._mainviewcontainer.add_subview(self._mainview)
 		self._mainview.frame=self._mainviewcontainer.bounds
+		self._mainview.splitview=self
 	@property
 	def detailview(self):
 		return self._detailview
@@ -98,10 +108,11 @@ class SplitView(ui.View):
 	def detailview(self,value):
 		if self._detailview:
 			self._detailviewcontainer.remove_subview(self._detailview)
+			self._detailview.splitview=None
 		self._detailview=value
 		self._detailviewcontainer.add_subview(self._detailview)
 		self._detailview.frame=self._detailviewcontainer.bounds
-
+		self._detailview.splitview=self
 	
 if __name__=='__main__':
 	splitview=SplitView(frame=(0,0,768,768),bg_color=(1,1,1))
@@ -140,7 +151,7 @@ if __name__=='__main__':
 		def splitview_did_show(self,splitview):
 			self.target.bg_color=(.9,.8,.8,1)
 	splitview.delegate=ButtonToggler(mainview['menu'])
-	splitview.present('panel')
+	splitview.present('sheet')
 	
 
 	
