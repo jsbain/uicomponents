@@ -1,5 +1,6 @@
 # coding: utf-8
 import ui,console
+from objc_util import *
 from functools import partial,wraps
 
 def animated(duration):
@@ -11,6 +12,15 @@ todo: add completion which gets called on the self object after animation is don
 			ui.animate(partial(fcn,self),duration=duration)
 		return animation
 	return decorator
+
+def gr_requirefailure_(cmd,sel,gr,other_gr)	:
+	superview=ObjCInstance(other_gr).view().superview()
+	if superview:
+		return superview.isKindOfClass_(ObjCClass('UIScrollView'))
+
+IMPTYPE = ctypes.CFUNCTYPE(ctypes.c_bool, *(4*[c_void_p]))
+imp = IMPTYPE(gr_requirefailure_)
+retain_global(imp)
 
 GESTURELENGTH=10	#distance of touch drag before any menus are shown
 
@@ -29,14 +39,11 @@ class SplitView(ui.View):
 	def __init__(self,detailwidth=320-22,style='slide',delegate=None,mainview= None,detailview=None, initial_state=0,**kwargs):
 		ui.View.__init__(self,**kwargs)
 		self._sv=ui.ScrollView()
-		self._sv.flex='h'
+		self._sv.flex='wh'
 		self._sv.frame=self.bounds
-		self._sv.width=44
-		self._sv.content_size=(2*detailwidth,self.bounds[3])
-		self._sv.bg_color=(.9,.9,.9,.5)
+		self._sv.content_size=(self.bounds[2]+1,self.bounds[3])
 		self._mainviewcontainer=ui.View()
 		self._mainviewcontainer.frame=self.bounds
-		#self._mainviewcontainer.y+=44
 		self._detailviewcontainer=ui.View()
 		self._detailviewcontainer.frame=self.bounds
 		self.detailwidth = detailwidth
@@ -48,40 +55,38 @@ class SplitView(ui.View):
 		self._detailview=None
 		self.delegate=delegate
 		self._sv.delegate=self
-		self.add_subview(self._mainviewcontainer)
-		self.add_subview(self._detailviewcontainer)
-		self._mainviewcontainer.add_subview(self._sv)
+		self._sv.add_subview(self._mainviewcontainer)
+		self._sv.add_subview(self._detailviewcontainer)
+		self.add_subview(self._sv)
 		self.style='slide'# 'slide','resize'
-		self.state=initial_state #1 when detail shown
-		self.mainview=mainview
-		self.detailview=detailview
-		if self.state:
-			self.show_detail()
+		self.state=0 #1 when detail shown
+		self._modify_gesture()
+		
+	def _modify_gesture(self):
+		svo=ObjCInstance(self._sv)
+		class_addMethod(objc_getClass(svo._get_objc_classname()), 
+			sel('gestureRecognizer:'
+				'shouldRequireFailureOfGestureRecognizer:'), 
+			imp, 'c@:@@')
+		c.method_setImplementation.restype = c_void_p
+		c.method_setImplementation.argtypes = [c_void_p, c_void_p]
+		oldimp=c.method_setImplementation(
+			svo.gestureRecognizer_shouldRequireFailureOfGestureRecognizer_.method,imp)
+			
 	def layout(self):
-		self._sv.content_size=(2*self.detailwidth,self.bounds[3])
-		self._sv.content_offset=(self.detailwidth,0)
+		self._sv.content_size=(self.bounds[2]+1,self.bounds[3])
+		
 	def scrollview_did_scroll(self, scrollview):
-		if scrollview.tracking : #prevent bounce
-			#console.hud_alert(str(scrollview.content_offset[0]-self.detailwidth))
-			if self.state==0 and scrollview.content_offset[0]-self.detailwidth>0:
-				scrollview.content_offset=(self.detailwidth,0)
-			if self.state==1 and scrollview.content_offset[0]-self.detailwidth<0:
-				scrollview.content_offset=(self.detailwidth,0)
-			self._mainviewcontainer.x=self.state*self.detailwidth-(scrollview.content_offset[0]-self.detailwidth)
-			self._detailviewcontainer.x=self.state*self.detailwidth-(scrollview.content_offset[0]-self.detailwidth)-self.detailwidth
+		if scrollview.dragging: #prevent bounce
+			if self.state==0 and scrollview.content_offset[0]>0:
+				scrollview.content_offset=(0,0)
+			if self.state==1 and scrollview.content_offset[0]<0:
+				scrollview.content_offset=(0,0)
 		else: 
-			if self.state==0:
-				if scrollview.content_offset[0]-self.detailwidth<-GESTURELENGTH:
-					self.show_detail()
-				else:
-					self.hide_detail()
-				scrollview.content_offset=(self.detailwidth,0)
-			else:
-				if scrollview.content_offset[0]-self.detailwidth>GESTURELENGTH:
-					self.hide_detail()
-				else:
-					self.show_detail()
-				scrollview.content_offset=(self.detailwidth,0)
+			if self.state==0 and scrollview.content_offset[0]<-GESTURELENGTH:
+				self.show_detail()
+			if self.state==1 and scrollview.content_offset[0]>GESTURELENGTH:
+				self.hide_detail()
 
 
 	@animated(0.4)
@@ -188,9 +193,11 @@ if __name__=='__main__':
 		def splitview_did_show(self,splitview):
 			self.target.bg_color=(.9,.8,.8,1)
 	splitview.delegate=ButtonToggler(mainview['menu'])
-	
-	# present
 	splitview.present('sheet')
+	
 	
 
 	
+
+#if hasattr(ObjCClass(svo._get_objc_classname()),'gestureRecognizer_shouldRequireFailureOfGestureRecognizer_'):
+
