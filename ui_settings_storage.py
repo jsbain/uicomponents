@@ -10,7 +10,7 @@ def store_settings(view):
                 if sv.name:
                     key=sv.name
                 else:
-                    key='__'+str(i) #need json keys to be str
+                    key=i #need json keys to be str
                 output[key]=output_tmp
         return output
     else:
@@ -28,7 +28,7 @@ def restore_settings(view, stored_value):
         if sv.name:
             key=sv.name
         else:
-            key='__'+str(i)
+            key=i
         try:
             restore_settings(sv,stored_value[key])
         except KeyError:
@@ -71,9 +71,9 @@ if __name__=='__main__':
     v.present('sheet')
     v.wait_modal()
     saved=store_settings(v)
-    import json
-    saved_json=json.dumps(saved)
+    import yaml
+    saved_yaml=yaml.dump(saved)
     #... 
     v2=createView()
-    restore_settings(v2,json.loads(saved_json))
+    restore_settings(v2,yaml.load(saved_yaml))
     v2.present('sheet')
