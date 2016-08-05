@@ -1,7 +1,7 @@
 import ui
 class hBoxLayout(ui.View):
     def __init__(self,subviews=None,flex=''):
-        print 'hb init'
+
         self.padding=10
         self.originalSizes=[]
         self._flex=flex
@@ -16,12 +16,12 @@ class hBoxLayout(ui.View):
         if not hasattr(subviews,'__contains__'):
             subviews=[subviews]
         for s in subviews:
-            self.originalSizes.append(s.frame[2:3])
+            self.originalSizes.append(s.frame.size)
             ui.View.add_subview(self,s)
         self.layout()
             
     def layout(self):
-        print 'hlay',self.width, self.height
+
         # first, compute total width needed for existing 
         needed_width=sum( [s[0] for s in self.originalSizes])
         flex_count=sum([1 for s in self.subviews if s.flex.find('W')>=0])
@@ -36,11 +36,11 @@ class hBoxLayout(ui.View):
                 s.width=float(flex_width)/flex_count
             if s.flex.find('H')>=0:
                 s.height=max_height
-            print s.width
+
             x=x+s.width+self.padding
             #set height settings, max_height
         self.width=x
-        print 'hlayout done', max_height
+
 
 class vBoxLayout(ui.View):
     def __init__(self, subviews=None):
@@ -57,18 +57,15 @@ class vBoxLayout(ui.View):
         _hidden=self.hidden
         self.hidden=True
         for s in subviews:
-            self.originalSizes.append(s.frame[2:])
-            print 'bf add'
+            self.originalSizes.append(s.frame.size)
             ui.View.add_subview(self,s)
 
         self.hidden=_hidden
             #self.originalSizes.append(s.frame[2:])
-        print 'bf lay'
         self.layout()
             
     def layout(self):
         # first, compute total width needed for existing 
-        print 'vlay',self.width, self.height
         needed_height=sum( [s[1] for s in self.originalSizes])
         flex_count=sum([1 for s in self.subviews if s.flex.find('H')>=0])
         fixed_height=sum([s.height if s.flex.find('H')<0 else 0 for s in self.subviews ])
@@ -86,12 +83,12 @@ class vBoxLayout(ui.View):
             y=y+s.height+self.padding
             #set height settings
         self.height=y
-        print 'vlay done', len(self.subviews)
+
   
             
 if __name__=='__main__':
     from uiCheckBox import CheckBox
-    root=ui.View()
+    root=ui.View(frame=(0,0,576,577))
     root.present('sheet')
     vbox=vBoxLayout()
     vbox.frame=(0,0,root.width,root.height)
@@ -103,7 +100,6 @@ if __name__=='__main__':
                       hBoxLayout([CheckBox(),ui.TextField(frame=(0,10,200,30),bg_color=(1,0,0))],flex='h'),
                       hBoxLayout([CheckBox(),ui.TextField(frame=(0,0,200,30),bg_color=(1,0,0))],flex='h')])
     vbox.hidden=False
-    print 'add done'
     
     b=ui.Button(bg_color=(1,0,0))
 
@@ -117,4 +113,6 @@ if __name__=='__main__':
     b.height=50
     b.flex=''
     vbox.add_subview(b)
-
+    
+    b=ui.Button(title='hello',bg_color=(0.5,0.5,0))
+    vbox.add_subview(b)
